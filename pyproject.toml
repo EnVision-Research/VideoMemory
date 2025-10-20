@@ -1,0 +1,14 @@
+[project]
+name = "videomemory"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dotenv>=0.9.9",
+    "httpx[socks]>=0.28.1",
+    "langchain-deepseek>=1.0.0",
+    "langchain[google-genai]>=1.0.0",
+    "langgraph>=1.0.0",
+    "replicate>=1.0.7",
+]
