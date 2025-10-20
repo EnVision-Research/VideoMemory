@@ -36,3 +36,6 @@ output/
 # uv
 # Keep uv.lock by default; uncomment to ignore
 # uv.lock
+
+# macOS
+.DS_Store
