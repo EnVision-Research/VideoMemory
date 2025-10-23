@@ -10,7 +10,7 @@ class AgentState(TypedDict):
 
     script: str
     storyboard: str
-
-    # memory
-    memory_bank: dict
+    
+    # Memory
+    memory_bank: str
 

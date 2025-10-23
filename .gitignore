@@ -39,3 +39,6 @@ output/
 
 # macOS
 .DS_Store
+
+# LangGraph
+.langgraph_api/

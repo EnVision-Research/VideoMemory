@@ -3,10 +3,9 @@ load_dotenv()
 
 import replicate
 import os
+import httpx
 from pydantic import BaseModel, Field
 from typing import List, Optional
-
-
 from langchain.tools import tool
 
 
@@ -57,19 +56,34 @@ def nano_banana_replicate_tool(
         for img_path in images:
             with open(img_path, "rb") as img_file:
                 # Upload file to Replicate and get URL
-                file_url = client.files.create(img_file)
-                image_urls.append(file_url.urls['get'])
+                file_obj = client.files.create(img_file)
+                # Use the URL from the file object's urls attribute
+                image_urls.append(file_obj.urls["get"])
         inputs["image_input"] = image_urls
     
     output = client.run(
         "google/nano-banana",
         input=inputs,
     )
-    # Save the first image to the normalized path
+    
+    # Save the generated image to the specified path
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    with open(save_path, "wb") as file:
-        # Ensure directory exists
-        file.write(output.read())
+    
+    # Handle different output formats
+    if isinstance(output, list):
+        # If output is a list of URLs, download the first one
+        response = httpx.get(output[0])
+        with open(save_path, "wb") as file:
+            file.write(response.content)
+    elif hasattr(output, 'read'):
+        # If output is a file-like object
+        with open(save_path, "wb") as file:
+            file.write(output.read())
+    else:
+        # If output is a URL string
+        response = httpx.get(str(output))
+        with open(save_path, "wb") as file:
+            file.write(response.content)
 
     return save_path
 
@@ -77,9 +91,9 @@ def nano_banana_replicate_tool(
 if __name__ == "__main__":
     nano_banana_replicate_tool.invoke(
         {
-            "prompt": "Cinematic keyframe from Frozen 2: ELSA (age 21, wearing signature ice-blue gown) stands troubled on Arendelle Castle balcony, hearing mysterious ethereal voice calling her. ANNA (age 19, in green dress) approaches with concerned expression. Wind carries ethereal whispers through the air, visible in Elsa's flowing hair and gown. Cool blue color palette with ethereal lighting, soft focus on Elsa's troubled expression. Medium close-up composition showing both sisters, camera slowly pushing in as voice calls. Mysterious atmosphere with wind effects, ancient powerful presence felt. Emotional tone: mysterious and troubled. Visual style: cinematic animation with soft lighting and wind movement.",
+            "prompt": "Create a new image by combining the elements from the provided images. Take the characters Maverick and Rooster from the reference images and place them in the flight briefing room environment. Add the tactical screen and mission schematics props. The final image should show: Maverick standing before a glowing tactical screen displaying mission schematics, Rooster watching him from the front row with clear resentment, tense atmosphere, high-contrast sterile lighting dominated by blue glow, cool color palette of blues, greys, and blacks, wide shot establishing the room and positions of all pilots, cinematic film style, professional military aesthetic",
+            "save_path": "output/TopGunMaverick/keyframes/1.png",
             "aspect_ratio": "16:9",
-            "save_path": "output/FronzenII/keyframes/shot_1.png",
-            "images": ['output/FronzenII/memory_bank/characters/ELSA.png', 'output/FronzenII/memory_bank/characters/ANNA.png', 'output/FronzenII/memory_bank/scenes/Arendelle_Castle_balcony.png']
+            "images": ['output/TopGunMaverick/memory_bank/characters/MAVERICK.png', 'output/TopGunMaverick/memory_bank/characters/ROOSTER.png', 'output/TopGunMaverick/memory_bank/scenes/FLIGHT_BRIEFING_ROOM.png', 'output/TopGunMaverick/memory_bank/props/TACTICAL_SCREEN.png', 'output/TopGunMaverick/memory_bank/props/MISSION_SCHEMATICS.png']
         }
     )

@@ -1,0 +1,7 @@
+{
+    "dependencies": ["."],
+    "graphs": {
+      "screenwriter_storyboard": "./src/graph.py:graph"
+    },
+    "env": ".env"
+}

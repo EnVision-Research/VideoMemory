@@ -4,12 +4,12 @@ from typing import Any, Optional
 from langchain_core.runnables import RunnableConfig
 
 
-from src.prompts import SCREENWRITER, STORYBOARD
+from src.prompts import SCREENWRITER, STORYBOARD, KEYFRAME
 
 class Configuration(BaseModel):
 
     screenwriter_model: str = Field(
-        default="deepseek:deepseek-chat",
+        default="google_genai:gemini-2.5-pro",
         metadata={"description": "The model to use for the screenwriter agent."}
     )
     screenwriter_prompt: str = Field(
@@ -17,14 +17,23 @@ class Configuration(BaseModel):
         metadata={"description": "The prompt to guide the screenwriter agent."}
     )
 
-    
+
     storyboard_model: str = Field(
-        default="deepseek:deepseek-chat",
+        default="google_genai:gemini-2.5-pro",
         metadata={"description": "The model to use for the storyboard agent."}
     )
     storyboard_prompt: str = Field(
         default=STORYBOARD,
         metadata={"description": "The prompt to guide the storyboard agent."}
+    )
+
+    keyframe_model: str = Field(
+        default="deepseek:deepseek-chat",
+        metadata={"description": "The model to use for the keyframe generation agent."}
+    )
+    keyframe_prompt: str = Field(
+        default=KEYFRAME,
+        metadata={"description": "The prompt to guide the keyframe generation agent."}
     )
 
     @classmethod
