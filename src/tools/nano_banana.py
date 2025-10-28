@@ -4,6 +4,7 @@ load_dotenv()
 import replicate
 import os
 import httpx
+import time
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from langchain.tools import tool
@@ -69,21 +70,44 @@ def nano_banana_replicate_tool(
     # Save the generated image to the specified path
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     
-    # Handle different output formats
-    if isinstance(output, list):
-        # If output is a list of URLs, download the first one
-        response = httpx.get(output[0])
-        with open(save_path, "wb") as file:
-            file.write(response.content)
-    elif hasattr(output, 'read'):
-        # If output is a file-like object
-        with open(save_path, "wb") as file:
-            file.write(output.read())
-    else:
-        # If output is a URL string
-        response = httpx.get(str(output))
-        with open(save_path, "wb") as file:
-            file.write(response.content)
+    # Download with retry logic
+    max_retries = 3
+    retry_delay = 2  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            # Handle different output formats
+            if isinstance(output, list):
+                # If output is a list of URLs, download the first one
+                with httpx.Client(timeout=120.0) as http_client:
+                    response = http_client.get(output[0])
+                    response.raise_for_status()
+                    with open(save_path, "wb") as file:
+                        file.write(response.content)
+            elif hasattr(output, 'read'):
+                # If output is a file-like object
+                with open(save_path, "wb") as file:
+                    file.write(output.read())
+            else:
+                # If output is a URL string
+                with httpx.Client(timeout=120.0) as http_client:
+                    response = http_client.get(str(output))
+                    response.raise_for_status()
+                    with open(save_path, "wb") as file:
+                        file.write(response.content)
+            
+            # Success - break retry loop
+            break
+            
+        except (httpx.RemoteProtocolError, httpx.TimeoutException, httpx.HTTPError) as e:
+            if attempt < max_retries - 1:
+                print(f"⚠️  Download attempt {attempt + 1} failed: {e}")
+                print(f"   Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                print(f"❌ Download failed after {max_retries} attempts")
+                raise
 
     return save_path
 

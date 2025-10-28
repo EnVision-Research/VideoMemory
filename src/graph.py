@@ -1,11 +1,11 @@
 from langgraph.graph import StateGraph, START, END
 
-from src.nodes import screenwriter_node, storyboard_node, keyframe_node
+from src.nodes import screenwriter_node, storyboard_node, keyframe_node, cinetography_node
 from src.state import AgentState
 from src.configuration import Configuration
 
 
-# Build the graph
+# screenwriter and storyboard graph
 builder = StateGraph(AgentState, config_schema=Configuration)
 
 # Add nodes
@@ -20,3 +20,18 @@ builder.add_edge("storyboard", END)
 
 # Compile the graph
 screenwriter_storyboard_graph = builder.compile()
+
+
+
+# cinetography graph
+builder = StateGraph(AgentState, config_schema=Configuration)
+
+# Add nodes
+builder.add_node("cinetography", cinetography_node)
+
+# Build linear flow: START → cinetography → END
+builder.add_edge(START, "cinetography")
+builder.add_edge("cinetography", END)
+
+# Compile the graph
+cinetography_graph = builder.compile()

@@ -5,7 +5,7 @@ from src.prompts import KEYFRAME
 
 
 def test_keyframe():
-    thread_id = "FronzenII"
+    thread_id = "HarryPotter"
     base_path = f"output/{thread_id}"
     storyboard_path = f"{base_path}/storyboard.json"
 

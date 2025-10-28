@@ -6,11 +6,15 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aiofiles>=24.1.0",
+    "deepagents>=0.1.4",
     "dotenv>=0.9.9",
     "httpx[socks]>=0.28.1",
     "langchain-deepseek>=1.0.0",
     "langchain[google-genai]>=1.0.0",
     "langgraph>=1.0.0",
     "langgraph-cli[inmem]>=0.4.4",
+    "langgraph-supervisor>=0.0.30",
     "replicate>=1.0.7",
+    "moviepy>=1.0.3",
+    "pydantic>=2.0.0",
 ]

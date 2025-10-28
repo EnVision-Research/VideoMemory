@@ -4,7 +4,7 @@ from typing import Any, Optional
 from langchain_core.runnables import RunnableConfig
 
 
-from src.prompts import SCREENWRITER, STORYBOARD, KEYFRAME
+from src.prompts import SCREENWRITER, STORYBOARD, CINETOGRAPHY
 
 class Configuration(BaseModel):
 
@@ -27,13 +27,13 @@ class Configuration(BaseModel):
         metadata={"description": "The prompt to guide the storyboard agent."}
     )
 
-    keyframe_model: str = Field(
-        default="deepseek:deepseek-chat",
-        metadata={"description": "The model to use for the keyframe generation agent."}
+    cinetography_model: str = Field(
+        default="google_genai:gemini-2.5-pro",
+        metadata={"description": "The model to use for the cinetography agent."}
     )
-    keyframe_prompt: str = Field(
-        default=KEYFRAME,
-        metadata={"description": "The prompt to guide the keyframe generation agent."}
+    cinetography_prompt: str = Field(
+        default=CINETOGRAPHY,
+        metadata={"description": "The prompt to guide the cinetography agent."}
     )
 
     @classmethod

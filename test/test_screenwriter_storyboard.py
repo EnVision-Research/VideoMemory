@@ -3,7 +3,7 @@ from src.graph import screenwriter_storyboard_graph
 
 
 async def main():
-    thread_id = "FronzenII"
+    thread_id = "Harry"
     with open(f"datasets/raw_scripts/{thread_id}.txt", "r") as f:
         script = f.read()
 

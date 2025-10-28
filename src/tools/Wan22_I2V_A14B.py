@@ -202,18 +202,54 @@ def wan22_i2v_tool(
                 
                 if video_url:
                     logger.info("Video generated successfully! Downloading...")
-                    # Download the video
-                    video_response = requests.get(video_url)
+                    # Download the video with retry logic
+                    max_download_attempts = 5
+                    download_attempt = 0
                     
-                    # Ensure directory exists
-                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                    
-                    # Save the video to the specified path
-                    with open(save_path, "wb") as video_file:
-                        video_file.write(video_response.content)
-                    
-                    logger.info(f"Video saved to: {save_path}")
-                    return save_path
+                    while download_attempt < max_download_attempts:
+                        try:
+                            download_attempt += 1
+                            logger.info(f"Download attempt {download_attempt}/{max_download_attempts}...")
+                            
+                            # Add timeout and stream for large files
+                            video_response = requests.get(
+                                video_url, 
+                                timeout=(30, 300),  # (connect timeout, read timeout)
+                                stream=True
+                            )
+                            video_response.raise_for_status()
+                            
+                            # Ensure directory exists
+                            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                            
+                            # Save the video to the specified path (streaming)
+                            with open(save_path, "wb") as video_file:
+                                for chunk in video_response.iter_content(chunk_size=8192):
+                                    if chunk:
+                                        video_file.write(chunk)
+                            
+                            logger.info(f"Video saved to: {save_path}")
+                            return save_path
+                            
+                        except (requests.exceptions.SSLError, 
+                                requests.exceptions.ConnectionError,
+                                requests.exceptions.Timeout,
+                                requests.exceptions.ChunkedEncodingError) as e:
+                            logger.warning(f"Download attempt {download_attempt} failed: {str(e)}")
+                            # Delete incomplete file if exists
+                            if os.path.exists(save_path):
+                                try:
+                                    os.remove(save_path)
+                                    logger.info(f"Removed incomplete file: {save_path}")
+                                except Exception as remove_error:
+                                    logger.warning(f"Failed to remove incomplete file: {remove_error}")
+                            
+                            if download_attempt >= max_download_attempts:
+                                raise Exception(f"Failed to download video after {max_download_attempts} attempts: {str(e)}")
+                            # Wait before retry (exponential backoff)
+                            wait_time = 2 ** download_attempt
+                            logger.info(f"Waiting {wait_time}s before retry...")
+                            time.sleep(wait_time)
             
             raise Exception("Video generation succeeded but no video URL found in response")
             
