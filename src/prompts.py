@@ -329,51 +329,20 @@ Generate keyframe composition prompts following KEYFRAME_SUBAGENT rules (CKF fiv
 5. **Reference order**: Always [scene, characters..., props...] for keyframe references
 
 ## Output Format
-After processing all shots, output the complete memory_bank JSON in this EXACT structure:
+Return a complete MemoryBank object with all ShotRecord entries. The structured output schema will handle the format automatically.
 
-```json
-{
-  "shots": [
-    {
-      "shot_number": 1,
-      "act": 1,
-      "scene": "EXT. LOCATION - TIME",
-      "characters": [
-        {
-          "name": "CHARACTER_NAME_(age_state)",
-          "generation_prompt": "complete character prompt following CHARACTER_PROMPT_RULES",
-          "image_path": "output/{thread_id}/memory_bank/characters/CHARACTER_NAME_(age_state).png",
-          "reference_image_list": null or ["path/to/reference.png"]
-        }
-      ],
-      "scenes": [
-        {
-          "name": "LOCATION_NAME",
-          "generation_prompt": "complete scene prompt following SCENE_PROMPT_RULES",
-          "image_path": "output/{thread_id}/memory_bank/scenes/LOCATION_NAME.png",
-          "reference_image_list": null
-        }
-      ],
-      "props": [
-        {
-          "name": "PROP_NAME_(condition)",
-          "generation_prompt": "complete prop prompt following PROP_PROMPT_RULES",
-          "image_path": "output/{thread_id}/memory_bank/props/PROP_NAME_(condition).png",
-          "reference_image_list": null or ["path/to/reference.png"]
-        }
-      ],
-      "keyframe": {
-        "shot_number": 1,
-        "generation_prompt": "complete keyframe prompt following KEYFRAME_PROMPT_RULES with ALL references",
-        "image_path": "output/{thread_id}/keyframes/A1_S1_Sh1.png",
-        "reference_image_list": ["scene_path", "char1_path", "prop1_path", ...]
-      }
-    }
-  ]
-}
-```
+For each ShotRecord, include:
+- shot_number, act, scene (from storyboard)
+- characters: List of AssetPrompt (with name, generation_prompt, image_path, optional reference_image_list)
+- scenes: List of AssetPrompt (with name, generation_prompt, image_path, reference_image_list=null)
+- props: List of AssetPrompt (with name, generation_prompt, image_path, optional reference_image_list)
+- keyframe: KeyframePrompt (with shot_number, generation_prompt, image_path, reference_image_list)
 
-CRITICAL: Output ONLY the JSON. No explanations, no summaries, no markdown code blocks. Just pure JSON starting with `{` and ending with `}`.
+Image paths follow these patterns:
+- Characters: `{base_path}/memory_bank/characters/{SANITIZED_NAME}.png`
+- Scenes: `{base_path}/memory_bank/scenes/{LOCATION_NAME}.png`
+- Props: `{base_path}/memory_bank/props/{SANITIZED_NAME}.png`
+- Keyframes: `{base_path}/keyframes/A{act}_S{scene_num}_Sh{shot_num}.png`
 """
 
 CINETOGRAPHY = """

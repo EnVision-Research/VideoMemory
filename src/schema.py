@@ -128,3 +128,32 @@ class Cinetography(BaseModel):
         ...,
         description="The list of shots for this cinetography."
     )
+
+# Memory Bank (Fast Pipeline)
+class AssetPrompt(BaseModel):
+    """Asset with generation prompt and path (for batch generation later)"""
+    name: str = Field(..., description="Asset name (e.g., 'LINA_(29_warm_smile)')")
+    generation_prompt: str = Field(..., description="Complete prompt for generating the asset")
+    image_path: str = Field(..., description="Path where image will be saved")
+    reference_image_list: Optional[List[str]] = Field(default=None, description="Reference images used (if versioned asset)")
+
+class KeyframePrompt(BaseModel):
+    """Keyframe with generation prompt and references"""
+    shot_number: int = Field(..., description="Sequential shot number across entire project")
+    generation_prompt: str = Field(..., description="Complete keyframe prompt with all references")
+    image_path: str = Field(..., description="Path where keyframe will be saved")
+    reference_image_list: List[str] = Field(..., description="Ordered list of reference image paths")
+
+class ShotRecord(BaseModel):
+    """Complete record for one shot"""
+    shot_number: int = Field(..., description="Sequential shot number")
+    act: int = Field(..., description="Act number (1, 2, or 3)")
+    scene: str = Field(..., description="Scene heading (e.g., 'EXT. LOCATION - TIME')")
+    characters: List[AssetPrompt] = Field(default_factory=list, description="Character assets for this shot")
+    scenes: List[AssetPrompt] = Field(default_factory=list, description="Scene assets for this shot")
+    props: List[AssetPrompt] = Field(default_factory=list, description="Prop assets for this shot")
+    keyframe: KeyframePrompt = Field(..., description="Final keyframe for this shot")
+
+class MemoryBank(BaseModel):
+    """Complete memory bank with all shots"""
+    shots: List[ShotRecord] = Field(..., description="All shot records in sequential order")
