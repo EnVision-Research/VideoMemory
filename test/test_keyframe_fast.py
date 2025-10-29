@@ -1,16 +1,18 @@
 """
 Fast keyframe planning test.
-Single agent processes entire storyboard and generates all prompts.
+Single agent processes entire storyboard and outputs complete memory_bank JSON.
+No tools needed - pure LLM output.
 Actual image generation happens later via batch_generate_images.py.
 """
 
 import json
 import logging
+import re
 from pathlib import Path
-from langchain.agents import create_agent
+from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
 
 from src.prompts import KEYFRAME_FAST_AGENT
-from src.tools.update_memory_bank import update_memory_bank_fast
 
 
 # Configure logging
@@ -23,67 +25,69 @@ logger = logging.getLogger(__name__)
 
 def test_keyframe_fast():
     """
-    Fast keyframe planning: single agent processes entire storyboard.
-    Generates prompts only - actual image generation happens later.
+    Fast keyframe planning: single LLM call outputs complete memory_bank JSON.
+    No tools, no agents - just pure LLM output.
     """
     
     thread_id = "Sunflower"
     base_path = f"output/{thread_id}"
     storyboard_path = f"{base_path}/storyboard.json"
+    memory_bank_path = Path(base_path) / "memory_bank.json"
     
     # Load storyboard
     logger.info(f"Loading storyboard from {storyboard_path}")
     with open(storyboard_path, "r") as f:
         storyboard = json.load(f)
     
-    # Create tools (only update_memory_bank_fast - agent generates prompts internally)
-    tools = [update_memory_bank_fast]
-    
-    # Create single fast agent
-    logger.info("Creating fast agent")
-    fast_agent = create_agent(
-        model="deepseek:deepseek-chat",
-        tools=tools,
-        system_prompt=KEYFRAME_FAST_AGENT
+    # Create LLM (no tools, no agents)
+    logger.info("Creating LLM")
+    llm = ChatOpenAI(
+        model="deepseek-chat",
+        temperature=0.7,
+        max_tokens=16000
     )
     
-    # Prepare input
-    user_message = f"""Base path: {base_path}
+    # Prepare messages
+    messages = [
+        {"role": "system", "content": KEYFRAME_FAST_AGENT},
+        {"role": "user", "content": f"""Base path: {base_path}
 
-Process this storyboard and generate all prompts:
+Process this storyboard and output the complete memory_bank JSON:
 
-{json.dumps(storyboard, indent=2)}"""
-    
-    input_data = {
-        "messages": [{"role": "user", "content": user_message}]
-    }
-    
-    config = {
-        "configurable": {"thread_id": thread_id},
-        "recursion_limit": 200  # Much lower than supervisor (only 1 agent)
-    }
+{json.dumps(storyboard, indent=2)}"""}
+    ]
     
     # Execute
     logger.info(f"Starting fast keyframe planning for: {thread_id}")
     logger.info("=" * 80)
     
-    for chunk in fast_agent.stream(
-        input=input_data,
-        stream_mode="values",
-        config=config
-    ):
-        if "messages" in chunk:
-            chunk["messages"][-1].pretty_print()
+    response = llm.invoke(messages)
+    output_text = response.content
     
+    logger.info("LLM output received")
     logger.info("=" * 80)
-    logger.info("Prompt generation complete")
     
-    # Verify output
-    memory_bank_path = Path(base_path) / "memory_bank.json"
-    assert memory_bank_path.exists(), "memory_bank.json not created"
+    # Parse JSON from output (strip markdown code blocks if present)
+    json_text = output_text.strip()
+    if json_text.startswith("```"):
+        # Remove markdown code blocks
+        json_text = re.sub(r'^```(?:json)?\s*\n', '', json_text)
+        json_text = re.sub(r'\n```\s*$', '', json_text)
     
-    with open(memory_bank_path, "r") as f:
-        memory_bank = json.load(f)
+    try:
+        memory_bank = json.loads(json_text)
+        logger.info("✅ Successfully parsed JSON output")
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Failed to parse JSON: {e}")
+        logger.error(f"Output text (first 500 chars): {output_text[:500]}")
+        raise
+    
+    # Save to file
+    memory_bank_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(memory_bank_path, "w") as f:
+        json.dump(memory_bank, f, ensure_ascii=False, indent=2)
+    
+    logger.info(f"💾 Saved to: {memory_bank_path}")
     
     # Count unique assets
     unique_chars = set()
@@ -91,11 +95,11 @@ Process this storyboard and generate all prompts:
     unique_props = set()
     
     for shot in memory_bank["shots"]:
-        for char in shot["characters"]:
+        for char in shot.get("characters", []):
             unique_chars.add(char["name"])
-        for scene in shot["scenes"]:
+        for scene in shot.get("scenes", []):
             unique_scenes.add(scene["name"])
-        for prop in shot["props"]:
+        for prop in shot.get("props", []):
             unique_props.add(prop["name"])
     
     logger.info(f"\n📊 Summary:")
