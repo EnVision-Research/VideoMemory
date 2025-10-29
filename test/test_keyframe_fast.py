@@ -10,12 +10,6 @@ from pathlib import Path
 from langchain.agents import create_agent
 
 from src.prompts import KEYFRAME_FAST_AGENT
-from src.tools.prompt_generators import (
-    generate_character_prompt,
-    generate_scene_prompt,
-    generate_prop_prompt,
-    generate_keyframe_prompt
-)
 from src.tools.update_memory_bank import update_memory_bank_fast
 
 
@@ -42,14 +36,8 @@ def test_keyframe_fast():
     with open(storyboard_path, "r") as f:
         storyboard = json.load(f)
     
-    # Create tools (NOT agents - pure functions)
-    tools = [
-        generate_character_prompt,
-        generate_scene_prompt,
-        generate_prop_prompt,
-        generate_keyframe_prompt,
-        update_memory_bank_fast
-    ]
+    # Create tools (only update_memory_bank_fast - agent generates prompts internally)
+    tools = [update_memory_bank_fast]
     
     # Create single fast agent
     logger.info("Creating fast agent")
