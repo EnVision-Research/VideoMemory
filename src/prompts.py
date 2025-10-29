@@ -21,7 +21,10 @@ Return a JSON screenplay with shots containing at least:
 - Each `Scene` represents one unique location + time. Create a new scene when location or time changes.
 - On first mention and whenever it changes, append a concise parenthetical `()` after each CHARACTER name (with current age) and each key hand-held PROP to capture current state/appearance/condition for visual continuity.
 - Preserve the given story entities; do not introduce or remove core characters, scenes, or props beyond the input.
-- Keep three-act structure; number of shots is flexible. Focus on consistency and temporal evolution.
+- Keep three-act structure; number of shots is flexible. Focus on consistency and temporal evolution. 
+- Temporal Rule: 
+  - If a character’s age (as given in the Script Synopsis) does NOT change across shots, you must assume no time skip. Do NOT artificially age the character or degrade props.
+  - If a character’s age DOES change across shots, you must treat this as a forward time jump. Reflect aging (appearance, posture, clothing maturity) and prop wear/use over time.
 """
 
 STORYBOARD = """
@@ -31,14 +34,23 @@ You are a storyboard artist and production designer.
 ## Goal
 Transform the screenplay into a per-shot storyboard that preserves cross-shot consistency (characters, scenes, props, global visual style) and shows temporal evolution (aging, wear-and-tear).
 
+## Input
+You receive the screenplay JSON, which is already based on the Script Synopsis. 
+
+
 ## Output
 One entry per shot with: `scene`, `scene_description`, `plot`, `characters`, `key_props`, `emotional_tone`, `visual_style`, `cinematography_notes`.
 
 ## Guidelines
-- Copy `scene` heading exactly from script.
-- Extract character and prop NAMES from `plot` (ignore parenthetical details in the names).
-- Keep the same characters and props across shots and let them evolve; do not swap identities.
-- Maintain a coherent visual language (color intent, lighting approach, composition principles) with subtle evolution over time.
+- Copy `scene` heading exactly from the screenplay.
+- `scene_description`: Give physical location, lighting/time of day, atmosphere, and any visual cues of time progression if applicable.
+- `plot`: Summarize the shot’s on-screen action (not dialogue formatting).
+- `characters`: List character NAMES as they appear in the screenplay (ignore parenthetical details in the names). Maintain identity continuity even if they age later.
+- `key_props`: List the prop NAMES mentioned in the shot (ignore parenthetical condition notes in the names). Track the same prop across time.
+- Maintain consistent visual language (color intent, lighting approach, composition principles). Let it evolve subtly only if there is an age/time jump indicated by the screenplay.
+- Temporal Rule: 
+  - If character ages do NOT change between shots, assume the moment is the same timeframe. Do NOT age characters or damage props.
+  - If character ages DO change between shots, treat it as a forward time jump and reflect visual aging (hair, posture, wardrobe maturity) and gradual prop wear/use.
 """
 
 
@@ -115,7 +127,7 @@ Generate a versioned character portrait that preserves identity across time.
 - Hands: must be empty — no handheld items or props.
 - Head: must be bare — no hats, helmets, crowns, headbands, hair accessories, or glasses.
 - Sanitize `current_state`: keep age + clothing/appearance ONLY; REMOVE any environment/location/action words (e.g., woods, forest, beach, city, misty, navigating, walking, running), props, story beats, or scene/landmark references.
-- Prompt (new): `{global_visual_style}, Cinematic full-body portrait of {CHARACTER_DESCRIPTION}, facing camera frontally. Neutral studio lighting, simple solid background. No text. No environment. Hands empty. Head bare.`
+- Prompt (new): `{global_visual_style}, Cinematic full-body portrait of {CHARACTER_DESCRIPTION}, facing camera frontally. Neutral studio lighting, simple background. No text. No environment. Hands empty. Head bare.`
 - Prompt (versioned): `{global_visual_style}, Take the character from the provided image, modify to: {CURRENT_STATE_DESCRIPTION (after sanitization: age + clothing/appearance only)}. Maintain facial identity and core features. Cinematic full-body portrait, frontal, neutral studio lighting, simple solid background. No text. No environment. Hands empty. Head bare.`
 - Save: `{base_path}/memory_bank/characters/{SANITIZED_CHARACTER_NAME_AND_STATE}.png` (spaces→`_`, allow `_` and `()`).
 """
@@ -153,14 +165,14 @@ Generate a versioned prop image that remains the same object while showing condi
 - Use `nano_banana_replicate_tool`.
 - Aspect ratio: `1:1`.
 - Style: Professional product photography, clean white background, studio lighting, sharp focus, detailed texture, isolated object. No text.
-- Prompt (new): `{global_visual_style}, Professional product photography of {PROP_DESCRIPTION}. Clean white background, studio lighting, sharp focus, detailed texture, isolated object. No text.`
+- Prompt (new): `{global_visual_style}, Professional product photography of {PROP_DESCRIPTION}. neutral studio lighting, simple background, sharp focus, detailed texture, isolated object. No text.`
 - Prompt (versioned): `{global_visual_style}, Take the object from the provided image, modify to show: {CURRENT_CONDITION_DESCRIPTION}. Maintain object identity and design. Clean white background, studio lighting. No text.`
 - Save: `{base_path}/memory_bank/props/{SANITIZED_PROP_NAME_AND_CONDITION}.png` (spaces→`_`, allow `_` and `()`).
 """
 
 KEYFRAME_SUBAGENT = """
 # Role
-Composite the final keyframe from reference images while preserving identity, scene, prop, and style consistency.
+Compose the final keyframe by fusing reference images while preserving identity, scene, prop, and global visual style continuity.
 
 ## Input
 - shot_number, plot, reference_image_paths (ordered), cinematography_notes, emotional_tone, visual_style, global_visual_style, output_path
@@ -170,15 +182,38 @@ Composite the final keyframe from reference images while preserving identity, sc
 
 ## Notes
 - Use `nano_banana_replicate_tool`.
-- Aspect ratio: `16:9`. One static camera angle (no zoom/pan/track terms).
-- Prompt structure (concise):
-  1) Opening: `Create a {global_visual_style}{, visual_style if provided} image blending the provided references.`
-  2) Composition (one sentence, adapt to available images):
-     `The {subject_1} (image{n1}){ and the {subject_2} (image{n2}) if present} {action from plot without parentheses} in the {environment} (image{n_env}){, with the {prop} (image{n_prop}) {minimal state} if present}.`
-     - Only reference elements visible in the scene plate; do not invent new landmarks/objects.
-  3) Camera & Atmosphere: `Shot from {static angle}, with a {emotional_tone} tone and {lighting details}.`
-  4) Consistency: `Maintain consistent identities and hairstyles; use only elements visible in the scene plate; keep lighting/shadows coherent.`
-  5) Text suppression: `No text.`
+- Aspect ratio: `16:9`. Single static camera angle (avoid zoom/pan/track terms).
+- Use only elements present in the scene plate; do not invent landmarks/objects.
+- Maintain consistent identities, hairstyles, and coherent lighting/shadows across all fused elements.
+- Text suppression: No text.
+
+- Reference indexing and coverage:
+  - Use one-based indexing: `image1` .. `imageN`. Never use 0.
+  - Every entry in `reference_image_paths` MUST appear at least once in `generation_prompt` as `(image{k})`.
+  - Begin the prompt with a compact reference map line that labels each index without file paths, e.g.: `References: (image1) scene plate, (image2) Character A, (image3) Prop: Sunflower, ...`.
+  - If a reference is ancillary (not a primary subject/prop/scene), append a short clause near the end: `Additional visual reference: (image{k})` to ensure full coverage.
+
+- Prompt structure (CKF, concise):
+  1) Context & Theme:
+     `References: (image1) {scene plate}, (image2) {primary character}, (image3) {prop1}{, ... list all references in order}.`
+     `Create a {global_visual_style}{, visual_style if provided} image set in {LOCATION/TIME from scene plate}, illuminated by {base lighting from cinematography_notes}. The thematic focus is {core theme distilled from plot}.`
+  2) Characters & Interaction:
+     `Character A (image{nA}): {distinct appearance}, {clear action/pose from plot}.`
+     `{if present} Character B (image{nB}): {distinct appearance}, {clear action/pose}.`
+     `Connect their actions with a precise verb describing the interaction.`
+  3) Prop & Placement:
+     `{Key prop} (image{nP}): {material/condition}; placed {exact position in scene} and {who interacts/how}.`
+  4) Narrative Tension:
+     `A sense of {concise unseen conflict/tension} permeates the scene.`
+  5) Cinematic Technical Specs:
+     `{one static shot type from cinematography_notes}, {lighting/color techniques}, {texture/rendering cues such as film grain, ultra-detailed, concept art}.`
+
+  End with coverage if needed: `Additional visual reference: (image{k}){, (image{k2}) ...}` for any indices not yet mentioned above.
+
+- Reference usage:
+  - Map each character, the scene plate, and props to their indices in `reference_image_paths` using one-based indices.
+  - Never fabricate references; if a logical role is missing for a given index, keep it in the `References:` map and include it under `Additional visual reference` so every index appears in the prompt.
+
 - Save: `{output_path}/keyframes/{shot_number}.png`.
 """
 
