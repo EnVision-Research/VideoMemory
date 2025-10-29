@@ -72,7 +72,7 @@ Process this storyboard and generate all prompts:
     
     config = {
         "configurable": {"thread_id": thread_id},
-        "recursion_limit": 50  # Much lower than supervisor (only 1 agent)
+        "recursion_limit": 200  # Much lower than supervisor (only 1 agent)
     }
     
     # Execute
