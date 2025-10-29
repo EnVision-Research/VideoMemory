@@ -246,58 +246,81 @@ For each shot in the storyboard (in sequential order):
 - update_memory_bank_fast(base_path, record: ShotRecord) → status dict (ONLY tool you should call)
 
 ## CHARACTER_PROMPT_RULES
-Generate character portrait prompts following these rules:
+Generate character portrait prompts following CHARACTER_SUBAGENT rules:
 - **Aspect ratio**: 1:1
-- **Style**: Cinematic full-body, frontal, neutral studio lighting, simple solid background
-- **Sanitize current_state**: Remove environment/location/action words (woods, forest, beach, city, balcony, navigating, walking, running, misty, foggy, etc.), keep ONLY age + clothing/appearance
+- **Style**: cinematic full-body, frontal, neutral studio lighting, simple solid background ONLY. No text. No environment.
+- **Hands**: must be empty — no handheld items or props.
+- **Head**: must be bare — no hats, helmets, crowns, headbands, hair accessories, or glasses.
+- **Sanitize current_state**: keep age + clothing/appearance ONLY; REMOVE any environment/location/action words (e.g., woods, forest, beach, city, misty, navigating, walking, running), props, story beats, or scene/landmark references.
 - **New character** (no reference):
   ```
-  {global_visual_style}, Cinematic full-body portrait of {CHARACTER_NAME}, {SANITIZED_STATE}, facing camera frontally. Neutral studio lighting, simple background. No text. No environment. Hands empty. Head bare.
+  {global_visual_style}, Cinematic full-body portrait of {CHARACTER_DESCRIPTION}, facing camera frontally. Neutral studio lighting, simple background. No text. No environment. Hands empty. Head bare.
   ```
 - **Versioned character** (has reference_image_path):
   ```
-  {global_visual_style}, Take the character from the provided image, modify to: {SANITIZED_STATE}. Maintain facial identity and core features. Cinematic full-body portrait, frontal, neutral studio lighting, simple solid background. No text. No environment. Hands empty. Head bare.
+  {global_visual_style}, Take the character from the provided image, modify to: {CURRENT_STATE_DESCRIPTION (after sanitization: age + clothing/appearance only)}. Maintain facial identity and core features. Cinematic full-body portrait, frontal, neutral studio lighting, simple solid background. No text. No environment. Hands empty. Head bare.
   ```
+- **Save path**: `{base_path}/memory_bank/characters/{SANITIZED_CHARACTER_NAME_AND_STATE}.png` (spaces→`_`, allow `_` and `()`)
 
 ## SCENE_PROMPT_RULES
-Generate scene plate prompts following these rules:
+Generate scene plate prompts following SCENE_SUBAGENT rules:
 - **Aspect ratio**: 16:9
-- **Style**: Wide establishing shot, no people
-- **Extract key_landmarks** from scene_description (recurring elements like "balcony railing", "glass door", etc.)
+- **Include recurring key_landmarks** to ensure continuity. No people.
 - **Template**:
   ```
-  {global_visual_style}, {SCENE_DESCRIPTION} based on scene heading: {SCENE_HEADING}. Key landmarks: {LANDMARKS_LIST}. Wide establishing shot, cinematic composition. No text. No people.
+  {global_visual_style}, {SCENE_DESCRIPTION} based on scene heading: {scene_heading}. {DETAILED_LANDMARKS}. {TIME_OF_DAY} lighting, {ATMOSPHERE_AND_MOOD}. Wide establishing shot, cinematic composition. No text. No people.
   ```
+- **Save path**: `{base_path}/memory_bank/scenes/{LOCATION_NAME}.png` (main location name, spaces→`_`)
 
 ## PROP_PROMPT_RULES
-Generate prop image prompts following these rules:
+Generate prop image prompts following PROP_SUBAGENT rules:
 - **Aspect ratio**: 1:1
-- **Style**: Professional product photography, clean white background, studio lighting
+- **Style**: Professional product photography, clean white background, studio lighting, sharp focus, detailed texture, isolated object. No text.
 - **New prop** (no reference):
   ```
-  {global_visual_style}, Professional product photography of {PROP_NAME}, {CURRENT_CONDITION}. Neutral studio lighting, simple background, sharp focus, detailed texture, isolated object. No text.
+  {global_visual_style}, Professional product photography of {PROP_DESCRIPTION}. neutral studio lighting, simple background, sharp focus, detailed texture, isolated object. No text.
   ```
 - **Versioned prop** (has reference_image_path):
   ```
-  {global_visual_style}, Take the object from the provided image, modify to show: {CURRENT_CONDITION}. Maintain object identity and design. Clean white background, studio lighting. No text.
+  {global_visual_style}, Take the object from the provided image, modify to show: {CURRENT_CONDITION_DESCRIPTION}. Maintain object identity and design. Clean white background, studio lighting. No text.
   ```
+- **Save path**: `{base_path}/memory_bank/props/{SANITIZED_PROP_NAME_AND_CONDITION}.png` (spaces→`_`, allow `_` and `()`)
 
 ## KEYFRAME_PROMPT_RULES
-Generate keyframe composition prompts following CKF five-step structure:
-- **Aspect ratio**: 16:9
-- **One-based indexing**: image1, image2, image3, ... (NEVER use image0)
-- **ALL references MUST appear** in the prompt
-- **Template structure**:
-  ```
-  References: (image1) {scene plate}, (image2) {primary character}, (image3) {prop1}, ... 
-  Create a {global_visual_style}{, visual_style if provided} image set in {LOCATION/TIME from scene plate}, illuminated by {base lighting from cinematography_notes}. The thematic focus is {core theme distilled from plot}. 
-  Character A (image{nA}): {distinct appearance}, {clear action/pose from plot}. 
-  {if present} Character B (image{nB}): {distinct appearance}, {clear action/pose}. 
-  {Key prop} (image{nP}): {material/condition}; placed {exact position in scene} and {who interacts/how}.
-  A sense of {concise unseen conflict/tension} permeates the scene. 
-  {one static shot type from cinematography_notes}, {lighting/color techniques}, {texture/rendering cues such as film grain, ultra-detailed, concept art}. 
-  No text.
-  ```
+Generate keyframe composition prompts following KEYFRAME_SUBAGENT rules (CKF five-step structure):
+- **Aspect ratio**: 16:9. Single static camera angle (avoid zoom/pan/track terms).
+- **Use only elements present in the scene plate**; do not invent landmarks/objects.
+- **Maintain consistent identities, hairstyles, and coherent lighting/shadows** across all fused elements.
+- **Text suppression**: No text.
+
+- **Reference indexing and coverage**:
+  - Use one-based indexing: `image1` .. `imageN`. Never use 0.
+  - Every entry in `reference_image_paths` MUST appear at least once in `generation_prompt` as `(image{k})`.
+  - Begin the prompt with a compact reference map line that labels each index without file paths, e.g.: `References: (image1) scene plate, (image2) Character A, (image3) Prop: Sunflower, ...`.
+  - If a reference is ancillary (not a primary subject/prop/scene), append a short clause near the end: `Additional visual reference: (image{k})` to ensure full coverage.
+
+- **Prompt structure (CKF, concise)**:
+  1) Context & Theme:
+     `References: (image1) {scene plate}, (image2) {primary character}, (image3) {prop1}{, ... list all references in order}.`
+     `Create a {global_visual_style}{, visual_style if provided} image set in {LOCATION/TIME from scene plate}, illuminated by {base lighting from cinematography_notes}. The thematic focus is {core theme distilled from plot}.`
+  2) Characters & Interaction:
+     `Character A (image{nA}): {distinct appearance}, {clear action/pose from plot}.`
+     `{if present} Character B (image{nB}): {distinct appearance}, {clear action/pose}.`
+     `Connect their actions with a precise verb describing the interaction.`
+  3) Prop & Placement:
+     `{Key prop} (image{nP}): {material/condition}; placed {exact position in scene} and {who interacts/how}.`
+  4) Narrative Tension:
+     `A sense of {concise unseen conflict/tension} permeates the scene.`
+  5) Cinematic Technical Specs:
+     `{one static shot type from cinematography_notes}, {lighting/color techniques}, {texture/rendering cues such as film grain, ultra-detailed, concept art}.`
+  
+  End with coverage if needed: `Additional visual reference: (image{k}){, (image{k2}) ...}` for any indices not yet mentioned above.
+
+- **Reference usage**:
+  - Map each character, the scene plate, and props to their indices in `reference_image_paths` using one-based indices.
+  - Never fabricate references; if a logical role is missing for a given index, keep it in the `References:` map and include it under `Additional visual reference` so every index appears in the prompt.
+
+- **Save path**: `{output_path}/keyframes/{shot_number}.png`
 
 ## Important Rules
 1. **Process shots sequentially** - maintain continuity across shots
