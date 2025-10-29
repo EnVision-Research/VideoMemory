@@ -1,9 +1,13 @@
 import json
+import logging
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from langchain.tools import tool
 from pydantic import BaseModel, Field, field_validator
+
+
+logger = logging.getLogger(__name__)
 
 
 class Asset(BaseModel):
@@ -29,6 +33,11 @@ class Asset(BaseModel):
 
 class KeyframeImage(BaseModel):
     """Represents the final keyframe output for a shot."""
+
+    shot_number: int = Field(
+        ...,
+        description="The sequential number of the shot globally across the entire project (e.g., 1, 2, 3, ..., 8), never restarting between acts or scenes."
+    )
 
     generation_prompt: str = Field(
         ...,
@@ -218,3 +227,114 @@ def update_memory_bank(base_path: str, record: KeyframeRecord) -> Dict[str, obje
         "total_scenes": len(memory_bank.scenes),
         "total_props": len(memory_bank.props),
     }
+
+
+# ============================================================================
+# FAST MEMORY BANK - SIMPLIFIED STRUCTURE FOR BATCH PROMPT GENERATION
+# ============================================================================
+
+class AssetPrompt(BaseModel):
+    """Simplified asset with only prompt and path (no actual generation yet)"""
+    
+    name: str = Field(..., description="Asset name")
+    generation_prompt: str = Field(..., description="Prompt for generating the asset")
+    image_path: str = Field(..., description="Placeholder path where image will be saved")
+    reference_image_list: Optional[List[str]] = Field(default=None, description="Reference images used")
+
+
+class KeyframePrompt(BaseModel):
+    """Simplified keyframe with only prompt and path"""
+    
+    shot_number: int = Field(..., description="Sequential shot number across entire project")
+    generation_prompt: str = Field(..., description="Prompt for generating the keyframe")
+    image_path: str = Field(..., description="Placeholder path where keyframe will be saved")
+    reference_image_list: Optional[List[str]] = Field(default=None, description="Reference images used")
+
+
+class ShotRecord(BaseModel):
+    """Complete record for one shot - simplified structure"""
+    
+    shot_number: int = Field(..., description="Sequential shot number")
+    act: int = Field(..., description="Act number")
+    scene: str = Field(..., description="Scene heading")
+    
+    # Assets for this shot
+    characters: List[AssetPrompt] = Field(default_factory=list, description="Character assets needed")
+    scenes: List[AssetPrompt] = Field(default_factory=list, description="Scene assets needed")
+    props: List[AssetPrompt] = Field(default_factory=list, description="Prop assets needed")
+    
+    # Final keyframe
+    keyframe: KeyframePrompt = Field(..., description="The final keyframe for this shot")
+
+
+class MemoryBankFast(BaseModel):
+    """Simplified memory bank: list of shot records"""
+    
+    shots: List[ShotRecord] = Field(default_factory=list, description="All shot records in order")
+    
+    @classmethod
+    def load(cls, path: Path) -> "MemoryBankFast":
+        if not path.exists():
+            return cls()
+        with path.open("r", encoding="utf-8") as f:
+            raw = json.load(f)
+        return cls.model_validate(raw)
+    
+    def save(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(self.model_dump(), f, ensure_ascii=False, indent=2)
+    
+    def get_asset_by_name(self, asset_type: str, name: str) -> Optional[AssetPrompt]:
+        """Find latest version of an asset by name"""
+        for shot in reversed(self.shots):  # Search from latest
+            if asset_type == "character":
+                for asset in shot.characters:
+                    if asset.name == name:
+                        return asset
+            elif asset_type == "scene":
+                for asset in shot.scenes:
+                    if asset.name == name:
+                        return asset
+            elif asset_type == "prop":
+                for asset in shot.props:
+                    if asset.name == name:
+                        return asset
+        return None
+
+
+class UpdateMemoryBankFastInput(BaseModel):
+    """Input schema for fast memory bank update"""
+    base_path: str = Field(..., description="Project base path")
+    record: ShotRecord = Field(..., description="Shot record to add")
+
+
+@tool(args_schema=UpdateMemoryBankFastInput)
+def update_memory_bank_fast(base_path: str, record: ShotRecord) -> Dict[str, object]:
+    """
+    Update memory bank with new shot record (prompts only, no actual generation).
+    Returns error if update fails - causes agent to halt.
+    """
+    try:
+        base = Path(base_path)
+        memory_bank_path = base / "memory_bank.json"
+        
+        memory_bank = MemoryBankFast.load(memory_bank_path)
+        memory_bank.shots.append(record)
+        memory_bank.save(memory_bank_path)
+        
+        logger.info(f"Updated memory bank for shot {record.shot_number}")
+        
+        return {
+            "status": "success",
+            "memory_bank_path": str(memory_bank_path),
+            "total_shots": len(memory_bank.shots),
+            "current_shot": record.shot_number
+        }
+    except Exception as e:
+        logger.error(f"Failed to update memory bank for shot {record.shot_number}: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": f"Failed to update memory bank for shot {record.shot_number}. Processing halted."
+        }

@@ -15,7 +15,7 @@ from src.tools import (
     update_memory_bank
 )
 
-thread_id = "Harry"
+thread_id = "Sunflower"
 base_path = f"output/{thread_id}"
 storyboard_path = f"{base_path}/storyboard.json"
 
