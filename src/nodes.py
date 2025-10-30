@@ -8,10 +8,8 @@ from langchain.agents import create_agent
 from src.llm import init_llm_model
 from src.configuration import Configuration
 from src.state import AgentState
-from src.schema import Script, Storyboard, Cinetography
-from src.tools.nano_banana import nano_banana_replicate_tool
-from src.tools.Wan22_I2V_A14B import wan22_i2v_tool
-from src.tools.concat_videos import concat_videos_tool
+from src.schema import Script, Storyboard, MemoryBank, Cinetography
+from src.tools import nano_banana_replicate_tool, wan22_i2v_tool, concat_videos_tool
 
 import os
 import json
@@ -118,29 +116,139 @@ async def keyframe_node(state: AgentState, config: RunnableConfig) -> AgentState
     thread_id = config.get("configurable", {}).get("thread_id")
     cfgs = Configuration.from_runnable_config(config)
 
-    agent = create_agent(
-        model = cfgs.keyframe_model,
-        tools=[nano_banana_replicate_tool],
-        system_prompt=cfgs.keyframe_prompt,
-    )
-
-    query = f"""
-The base path is:\n "output/{thread_id}/"
-The storyboard is:\n {state['storyboard']}
-"""
-
+    llm = init_llm_model(
+        model=cfgs.keyframe_model
+        ).with_structured_output(MemoryBank)
+    
+    # Prepare messages
     query_messages = [
         SystemMessage(content=cfgs.keyframe_prompt),
-        HumanMessage(content=query),
+        HumanMessage(content=f"""Base path: f"output/{thread_id}"
+
+Process this storyboard:
+
+{json.dumps(state['storyboard'], indent=2)}""")
     ]
+    
+    
+    resp = await llm.ainvoke(query_messages)
+    memory_bank = resp.model_dump_json(indent=2)
 
-    resp = agent.invoke(query_messages)
-
+    # save the memory_bank to a file
+    os.makedirs(f"output/{thread_id}", exist_ok=True)
+    async with aiofiles.open(f"output/{thread_id}/memory_bank.json", "w") as f:
+        await f.write(memory_bank)
 
     return {
-        "messages": HumanMessage(content=resp.keyframe.model_dump_json(indent=2)),
+        "messages": AIMessage(content=memory_bank, name="keyframe"),
+        "memory_bank": resp.model_dump(),
     }
 
+
+async def keyframe_generation_node(state: AgentState, config: RunnableConfig) -> AgentState:
+
+    memory_bank = state['memory_bank']
+    
+    generated_asset_paths: set[str] = set()
+    generated_keyframes: list[str] = []
+
+    async def generate_image(payload: dict) -> str:
+        """Run the nano banana tool in a worker thread."""
+        return await asyncio.to_thread(nano_banana_replicate_tool.invoke, payload)
+
+    async def generate_asset(asset, shot: int, asset_type: str) -> str:
+        """Generate an individual asset if it has not been created already."""
+        save_path = asset["image_path"]
+        if save_path in generated_asset_paths or os.path.exists(save_path):
+            logger.info(
+                "Skipping existing %s asset for shot %s: %s",
+                asset_type,
+                shot,
+                save_path,
+            )
+            generated_asset_paths.add(save_path)
+            return save_path
+
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        logger.info(
+            "Generating %s asset for shot %s: %s",
+            asset_type,
+            shot,
+            asset['name'],
+        )
+        payload = {
+            "prompt": asset["generation_prompt"],
+            "aspect_ratio": asset["aspect_ratio"],
+            "save_path": save_path,
+            "images": asset["reference_image_list"] or None,
+        }
+        result_path = await generate_image(payload)
+        generated_asset_paths.add(result_path)
+        logger.info(
+            "✓ Generated %s asset for shot %s at %s",
+            asset_type,
+            shot,
+            result_path,
+        )
+        return result_path
+
+    async def generate_keyframe_image(keyframe, shot: int) -> str:
+        """Generate the keyframe image after all dependent assets exist."""
+        save_path = keyframe["image_path"]
+        if os.path.exists(save_path):
+            logger.info("Skipping existing keyframe for shot %s: %s", shot, save_path)
+            return save_path
+
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        missing_refs = [
+            ref for ref in keyframe['reference_image_list'] if not os.path.exists(ref)
+        ]
+        if missing_refs:
+            logger.warning(
+                "Shot %s keyframe references missing files: %s",
+                shot,
+                ", ".join(missing_refs),
+            )
+
+        logger.info("Generating keyframe for shot %s at %s", shot, save_path)
+        payload = {
+            "prompt": keyframe['generation_prompt'],
+            "aspect_ratio": keyframe['aspect_ratio'],
+            "save_path": save_path,
+            "images": keyframe['reference_image_list'],
+        }
+        result_path = await generate_image(payload)
+        logger.info("✓ Generated keyframe for shot %s at %s", shot, result_path)
+        return result_path
+
+    for shot in memory_bank['shots']:
+        shot_assets = [
+            ("character", asset) for asset in shot['characters']
+        ] + [
+            ("scene", asset) for asset in shot['scenes']
+        ] + [
+            ("prop", asset) for asset in shot['props']
+        ]
+
+        asset_tasks = [
+            asyncio.create_task(generate_asset(asset, shot['shot'], asset_type))
+            for asset_type, asset in shot_assets
+        ]
+
+        if asset_tasks:
+            await asyncio.gather(*asset_tasks)
+
+        keyframe_path = await generate_keyframe_image(shot['keyframe'], shot['shot'])
+        generated_keyframes.append(keyframe_path)
+
+    message = (
+        f"Generated assets and keyframes for {len(memory_bank['shots'])} shots. "
+        f"Keyframes saved to: {', '.join(generated_keyframes)}"
+    )
+
+    return {
+        "messages": AIMessage(content=message, name="keyframe_generation"),
+    }
 
 
 async def generate_and_concat_videos(shots: list, thread_id: str) -> str:

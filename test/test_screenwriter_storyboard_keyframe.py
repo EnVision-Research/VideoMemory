@@ -1,9 +1,9 @@
 import asyncio
-from src.graph import screenwriter_storyboard_graph
+from src.graph import screenwriter_storyboard_keyframe_graph
 
 
 async def main():
-    thread_id = "Sunflower"
+    thread_id = "OldWatch"
     with open(f"datasets/cases/{thread_id}.txt", "r") as f:
         script = f.read()
 
@@ -15,7 +15,7 @@ async def main():
         "messages": [("user", script)]
     }
 
-    async for msgs in screenwriter_storyboard_graph.astream(input=input, stream_mode="values", config=config):
+    async for msgs in screenwriter_storyboard_keyframe_graph.astream(input=input, stream_mode="values", config=config):
         msgs['messages'][-1].pretty_print()
 
 if __name__ == "__main__":      

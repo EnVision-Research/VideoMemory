@@ -75,7 +75,7 @@ class Storyboardshot(BaseModel):
     )
     cinematography_notes: str = Field(
         ...,
-        description="Camera techniques, angles, movements, and cinematography suggestions for this shot (e.g., close-up, wide shot, tracking shot, Dutch angle, etc.)."
+        description="Natural language cinematography description (2-4 sentences in flowing prose) that serves dual purposes: (1) Keyframe Composition Design - describes static frame composition including shot type, camera angle, focal length, depth of field, lighting, and visual composition; (2) Video Shot Motion Design - describes camera movement path, starting position (matching keyframe), motion motivation, and pacing; (3) Shot Continuity - addresses relationship to adjacent shots for spatial logic, eye-lines, screen direction, and scene coverage. Must ensure shot-to-shot flow and serve narrative progression. Example: 'Open with a wide establishing shot at eye level using a 35mm lens with deep focus. For the video shot, begin locked off for two seconds, then slowly dolly in toward the character. This establishes spatial geography and sets up the subsequent close-up.'"
     )   
 
 class Storyboard(BaseModel):
@@ -100,19 +100,19 @@ class Cinetographyshot(BaseModel):
     )
     generation_prompt: str = Field(
         ...,
-        description="The prompt used to generate the video for this shot."
+        description="Concise video generation prompt (max 500 characters) focusing on action, movement, and camera motion. Derived from storyboard's cinematography_notes, emphasizing the motion design aspects (camera movement path, pacing, character actions). Should maintain narrative continuity with adjacent shots and exclude technical image generation instructions."
     )
     image_path: str = Field(
         ...,
-        description="The path to the referenced image file for this shot."
+        description="The path to the keyframe image file that serves as the starting frame for this video shot."
     )
     negative_prompt: str = Field(
         ...,
-        description="The negative prompt used to generate the video for this shot."
+        description="Negative prompt specifying what to avoid in video generation (e.g., 'blurry, distorted, static, jittery motion, artifacts')."
     )
     save_path: str = Field(
         ...,
-        description="The saved path for this shot."
+        description="Output path where the generated video file will be saved (e.g., 'output/{project_name}/videos/{shot_number}.mp4')."
     )
 
 class Cinetography(BaseModel):
@@ -133,20 +133,21 @@ class Cinetography(BaseModel):
 class AssetPrompt(BaseModel):
     """Asset with generation prompt and path (for batch generation later)"""
     name: str = Field(..., description="Asset name (e.g., 'LINA_(29_warm_smile)')")
+    aspect_ratio: str = Field(..., description="The aspect ratio of the asset")
     generation_prompt: str = Field(..., description="Complete prompt for generating the asset")
     image_path: str = Field(..., description="Path where image will be saved")
     reference_image_list: Optional[List[str]] = Field(default=None, description="Reference images used (if versioned asset)")
 
 class KeyframePrompt(BaseModel):
     """Keyframe with generation prompt and references"""
-    shot_number: int = Field(..., description="Sequential shot number across entire project")
+    aspect_ratio: str = Field(..., description="The aspect ratio of the keyframe")
     generation_prompt: str = Field(..., description="Complete keyframe prompt with all references")
     image_path: str = Field(..., description="Path where keyframe will be saved")
     reference_image_list: List[str] = Field(..., description="Ordered list of reference image paths")
 
 class ShotRecord(BaseModel):
     """Complete record for one shot"""
-    shot_number: int = Field(..., description="Sequential shot number")
+    shot: int = Field(..., description="Sequential shot number")
     act: int = Field(..., description="Act number (1, 2, or 3)")
     scene: str = Field(..., description="Scene heading (e.g., 'EXT. LOCATION - TIME')")
     characters: List[AssetPrompt] = Field(default_factory=list, description="Character assets for this shot")

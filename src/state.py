@@ -12,5 +12,5 @@ class AgentState(TypedDict):
     storyboard: str
     
     # Memory
-    memory_bank: str
+    memory_bank: dict
 
