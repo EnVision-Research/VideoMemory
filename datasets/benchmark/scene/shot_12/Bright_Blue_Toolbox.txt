@@ -1,0 +1,27 @@
+Title: Bright Blue Toolbox
+
+Shot1: In a cluttered home workshop, the workbench is empty.
+
+Shot2: In the workshop, a bright blue toolbox (a classic, cantilever-style metal box) sits on the bench.
+
+Shot3: In the workshop, the toolbox is gone; MARIA (40, in overalls) places a broken wooden chair on the bench.
+
+Shot4: In the workshop, Maria studies the broken chair, frowning.
+
+Shot5: In the workshop, Maria is gone; the bright blue toolbox is back next to the broken chair.
+
+Shot6: In the workshop, Maria returns; the bright blue toolbox is open as she selects a small bottle of wood glue.
+
+Shot7: In the workshop, Maria applies glue to the chair; the toolbox is out of view on the floor.
+
+Shot8: In the workshop, Maria is gone; the repaired chair sits on the bench, clamped.
+
+Shot9: In the workshop, the chair is gone; the bright blue toolbox sits open as Maria cleans her tools.
+
+Shot10: In the workshop, Maria snaps the bright blue toolbox shut.
+
+Shot11: In the workshop, Maria is gone; the bright blue toolbox sits closed on the bench.
+
+Shot12: In the workshop, the workbench is empty again.
+
+

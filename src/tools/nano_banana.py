@@ -4,11 +4,19 @@ load_dotenv()
 import replicate
 import os
 import httpx
-import time
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from langchain.tools import tool
+import logging
+from src.utils import retry_with_backoff
 
+logger = logging.getLogger(__name__)
+
+# Create a Replicate client with extended timeout
+client = replicate.Client(
+    api_token=os.environ.get("REPLICATE_API_TOKEN"),
+    timeout=300  # Increase timeout to 300 seconds (5 minutes)
+)
 
 class NanoBananaReplicateInput(BaseModel):
     prompt: str = Field(..., description="The text prompt to guide image generation")
@@ -45,11 +53,6 @@ def nano_banana_replicate_tool(
         "aspect_ratio": aspect_ratio,
         "output_format": "png",
     }
-    # Create a Replicate client with extended timeout
-    client = replicate.Client(
-        api_token=os.environ.get("REPLICATE_API_TOKEN"),
-        timeout=300  # Increase timeout to 300 seconds (5 minutes)
-    )
     
     if images:
         # Upload local files to Replicate and get URLs
@@ -62,52 +65,48 @@ def nano_banana_replicate_tool(
                 image_urls.append(file_obj.urls["get"])
         inputs["image_input"] = image_urls
     
-    output = client.run(
-        "google/nano-banana",
-        input=inputs,
+    # Add retry logic for API calls using generic retry function
+    def api_call():
+        return client.run("google/nano-banana", input=inputs)
+    
+    output = retry_with_backoff(
+        operation_name="API call",
+        max_retries=3,
+        initial_delay=10.0,
+        operation_func=api_call
     )
     
     # Save the generated image to the specified path
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     
-    # Download with retry logic
-    max_retries = 3
-    retry_delay = 2  # seconds
-    
-    for attempt in range(max_retries):
-        try:
-            # Handle different output formats
-            if isinstance(output, list):
-                # If output is a list of URLs, download the first one
-                with httpx.Client(timeout=120.0) as http_client:
-                    response = http_client.get(output[0])
-                    response.raise_for_status()
-                    with open(save_path, "wb") as file:
-                        file.write(response.content)
-            elif hasattr(output, 'read'):
-                # If output is a file-like object
+    # Download with retry logic using generic retry function
+    def download_image():
+        # Handle different output formats
+        if isinstance(output, list):
+            # If output is a list of URLs, download the first one
+            with httpx.Client(timeout=120.0) as http_client:
+                response = http_client.get(output[0])
+                response.raise_for_status()
                 with open(save_path, "wb") as file:
-                    file.write(output.read())
-            else:
-                # If output is a URL string
-                with httpx.Client(timeout=120.0) as http_client:
-                    response = http_client.get(str(output))
-                    response.raise_for_status()
-                    with open(save_path, "wb") as file:
-                        file.write(response.content)
-            
-            # Success - break retry loop
-            break
-            
-        except (httpx.RemoteProtocolError, httpx.TimeoutException, httpx.HTTPError) as e:
-            if attempt < max_retries - 1:
-                print(f"⚠️  Download attempt {attempt + 1} failed: {e}")
-                print(f"   Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-            else:
-                print(f"❌ Download failed after {max_retries} attempts")
-                raise
+                    file.write(response.content)
+        elif hasattr(output, 'read'):
+            # If output is a file-like object
+            with open(save_path, "wb") as file:
+                file.write(output.read())
+        else:
+            # If output is a URL string
+            with httpx.Client(timeout=120.0) as http_client:
+                response = http_client.get(str(output))
+                response.raise_for_status()
+                with open(save_path, "wb") as file:
+                    file.write(response.content)
+    
+    retry_with_backoff(
+        operation_name="Download",
+        max_retries=3,
+        initial_delay=2.0,
+        operation_func=download_image
+    )
 
     return save_path
 

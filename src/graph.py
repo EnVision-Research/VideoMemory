@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, START, END
 
-from src.nodes import screenwriter_node, storyboard_node, keyframe_node, cinetography_node, keyframe_generation_node
+from src.nodes import screenwriter_node, storyboard_node, keyframe_node, cinetography_node, keyframe_generation_node, cinetography_node
 from src.state import AgentState
 from src.configuration import Configuration
 
@@ -17,7 +17,8 @@ builder.add_edge(START, "screenwriter")
 builder.add_edge("screenwriter", "storyboard")
 builder.add_edge("storyboard", "keyframe")
 builder.add_edge("keyframe", "keyframe_generation")
-builder.add_edge("keyframe_generation", END)
+builder.add_edge("keyframe_generation", "cinetography")
+builder.add_edge("cinetography", END)
 
 video_memory_graph = builder.compile()
 

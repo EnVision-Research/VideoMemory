@@ -10,6 +10,7 @@ from src.configuration import Configuration
 from src.state import AgentState
 from src.schema import Script, Storyboard, MemoryBank, Cinetography
 from src.tools import nano_banana_replicate_tool, wan22_i2v_tool, concat_videos_tool
+from src.utils import retry_with_backoff
 
 import os
 import json
@@ -96,7 +97,7 @@ async def storyboard_node(state: AgentState, config: RunnableConfig) -> AgentSta
 
     query_messages = [
         SystemMessage(content=cfgs.storyboard_prompt),
-        HumanMessage(content=f"Script is:\n{state['script']}"),
+        HumanMessage(content=f"The script is:\n{state['script']}"),
     ]
 
     result = await llm.ainvoke(query_messages)
@@ -151,10 +152,25 @@ async def keyframe_generation_node(state: AgentState, config: RunnableConfig) ->
     
     generated_asset_paths: set[str] = set()
     generated_keyframes: list[str] = []
+    
+    # Create rate limiter for image generation API calls
+    # Limit to calls per minute to avoid overwhelming the API
+    rate_limiter = RateLimiter(max_calls=4, time_window=60.0)
 
     async def generate_image(payload: dict) -> str:
-        """Run the nano banana tool in a worker thread."""
-        return await asyncio.to_thread(nano_banana_replicate_tool.invoke, payload)
+        """Run the nano banana tool in a worker thread with timeout."""
+        try:
+            # Acquire rate limiter before making API call
+            await rate_limiter.acquire()
+            
+            # Add timeout for image generation (5 minutes)
+            return await asyncio.wait_for(
+                asyncio.to_thread(nano_banana_replicate_tool.invoke, payload),
+                timeout=300.0  # 5 minutes
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"Image generation timed out for prompt: {payload.get('prompt', 'Unknown')[:100]}...")
+            raise
 
     async def generate_asset(asset, shot: int, asset_type: str) -> str:
         """Generate an individual asset if it has not been created already."""
@@ -182,15 +198,25 @@ async def keyframe_generation_node(state: AgentState, config: RunnableConfig) ->
             "save_path": save_path,
             "images": asset["reference_image_list"] or None,
         }
-        result_path = await generate_image(payload)
-        generated_asset_paths.add(result_path)
-        logger.info(
-            "✓ Generated %s asset for shot %s at %s",
-            asset_type,
-            shot,
-            result_path,
+        
+        # Add retry logic for asset generation using generic retry function
+        async def generate_asset_with_retry():
+            result_path = await generate_image(payload)
+            generated_asset_paths.add(result_path)
+            logger.info(
+                "✓ Generated %s asset for shot %s at %s",
+                asset_type,
+                shot,
+                result_path,
+            )
+            return result_path
+        
+        return await retry_with_backoff(
+            operation_name=f"{asset_type} asset generation for shot {shot}",
+            max_retries=2,
+            initial_delay=5.0,
+            operation_func=generate_asset_with_retry
         )
-        return result_path
 
     async def generate_keyframe_image(keyframe, shot: int) -> str:
         """Generate the keyframe image after all dependent assets exist."""
@@ -217,11 +243,26 @@ async def keyframe_generation_node(state: AgentState, config: RunnableConfig) ->
             "save_path": save_path,
             "images": keyframe['reference_image_list'],
         }
-        result_path = await generate_image(payload)
-        logger.info("✓ Generated keyframe for shot %s at %s", shot, result_path)
-        return result_path
+        
+        # Add retry logic for keyframe generation using generic retry function
+        async def generate_keyframe_with_retry():
+            result_path = await generate_image(payload)
+            logger.info("✓ Generated keyframe for shot %s at %s", shot, result_path)
+            return result_path
+        
+        return await retry_with_backoff(
+            operation_name=f"Keyframe generation for shot {shot}",
+            max_retries=2,
+            initial_delay=5.0,
+            operation_func=generate_keyframe_with_retry
+        )
 
     for shot in memory_bank['shots']:
+        shot_num = shot['shot']
+        total_shots = len(memory_bank['shots'])
+        
+        logger.info(f"🚀 Processing shot {shot_num}/{total_shots}")
+        
         shot_assets = [
             ("character", asset) for asset in shot['characters']
         ] + [
@@ -230,19 +271,24 @@ async def keyframe_generation_node(state: AgentState, config: RunnableConfig) ->
             ("prop", asset) for asset in shot['props']
         ]
 
+        logger.info(f"📦 Generating {len(shot_assets)} assets for shot {shot_num}")
+        
         asset_tasks = [
-            asyncio.create_task(generate_asset(asset, shot['shot'], asset_type))
+            asyncio.create_task(generate_asset(asset, shot_num, asset_type))
             for asset_type, asset in shot_assets
         ]
 
         if asset_tasks:
             await asyncio.gather(*asset_tasks)
 
-        keyframe_path = await generate_keyframe_image(shot['keyframe'], shot['shot'])
+        logger.info(f"🎨 Generating keyframe for shot {shot_num}")
+        keyframe_path = await generate_keyframe_image(shot['keyframe'], shot_num)
         generated_keyframes.append(keyframe_path)
+        
+        logger.info(f"✅ Completed shot {shot_num}/{total_shots}")
 
     message = (
-        f"Generated assets and keyframes for {len(memory_bank['shots'])} shots. "
+        f"🎉 Successfully generated assets and keyframes for {len(memory_bank['shots'])} shots. "
         f"Keyframes saved to: {', '.join(generated_keyframes)}"
     )
 
@@ -265,16 +311,16 @@ async def generate_and_concat_videos(shots: list, thread_id: str) -> str:
     logger.info(f"Starting parallel video generation for {len(shots)} shots...")
     
     # Create rate limiter: 4 calls per 60 seconds (1 minute)
-    rate_limiter = RateLimiter(max_calls=4, time_window=60.0)
+    rate_limiter = RateLimiter(max_calls=2, time_window=60.0)
     
     # Generate videos in parallel using asyncio.to_thread
     async def generate_video_async(shot_data: dict, shot_index: int) -> str:
         """Async wrapper for wan22_i2v_tool with rate limiting"""
-        logger.info(f"Begin generating video for shot...")
         try:
             # Acquire rate limiter before making the call
             await rate_limiter.acquire()
-            
+            logger.info(f"Begin generating video for shot...")
+
             result = await asyncio.to_thread(
                 wan22_i2v_tool.invoke,
                 {
@@ -352,12 +398,11 @@ The keyframes history is:\n {keyframes_json}
         await f.write(shots_json)
     
     # Generate and concatenate videos
-    final_video = await generate_and_concat_videos(shots, thread_id)
+    # final_video = await generate_and_concat_videos(shots, thread_id)
     
     return {
         "messages": AIMessage(
-            content=f"Video generation completed. Final video: {final_video}", 
+            content=f"Video generation completed.", 
             name="cinetography"
         ),
-        "final_video": final_video,
     }

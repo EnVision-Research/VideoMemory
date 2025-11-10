@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 async def test_cinetography():
 
-    thread_id = "Harry"
+    thread_id = "NeonAegis"
     storyboard_path = f"output/{thread_id}/storyboard.json"
     memory_bank_path = f"output/{thread_id}/memory_bank.json"
 

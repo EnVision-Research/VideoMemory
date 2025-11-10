@@ -190,7 +190,7 @@ def wan22_i2v_tool(
         result_data = _get_video_status(api_key, request_id)
         status = result_data.get("status")
         
-        logger.info(f"Status: {status}. Attempt {attempt}/{max_attempts}...")
+        logger.info(f"Request ID: {request_id}. Status: {status}. Attempt {attempt}/{max_attempts}...")
         
         if status == "Succeed":
             # Extract video URL from results

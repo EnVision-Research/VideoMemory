@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-    thread_id = "RedScarf"
+    thread_id = "Vase"
     with open(f"output/{thread_id}/memory_bank.json", "r") as f:
         memory_bank = json.load(f)
     

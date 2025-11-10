@@ -10,8 +10,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 async def main():
-    thread_id = "BreathofMarch"
-    with open(f"datasets/cases/{thread_id}.txt", "r") as f:
+    thread_id = "Vase"
+    with open(f"datasets/benchmark/{thread_id}.txt", "r") as f:
         script = f.read()
 
     config = {
