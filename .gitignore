@@ -1,0 +1,44 @@
+# Python-generated files
+__pycache__/
+*.py[codz]
+*$py.class
+*.py[oc]
+
+# Build / dist
+build/
+dist/
+wheels/
+*.egg-info/
+downloads/
+
+# Virtual environments
+.venv
+env/
+venv/
+
+# Environment files
+.env
+.envrc
+
+# Tooling caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.cache/
+
+# Editors / IDE
+.idea/
+.vscode/
+
+# Project outputs
+output/
+
+# uv
+# Keep uv.lock by default; uncomment to ignore
+# uv.lock
+
+# macOS
+.DS_Store
+
+# LangGraph
+.langgraph_api/
