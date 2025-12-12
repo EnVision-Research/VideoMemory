@@ -1,113 +1,87 @@
-**Title: "A Ninja's Promise"**
+**TITLE: THE EDGE OF FOCUS**
 
-**Logline:**
-A young ninja faces a crucial test of trust and loyalty, proving that even the smallest acts of kindness can have a lasting impact.
+**GENRE: 2D Animated Action / Drama**
 
----
+**LOGLINE:** Two rivals clash in a high-intensity sparring match where their focus warps reality around them.
 
-**Scene 1: EXT. VILLAGE SQUARE - DAY**
+**KEY PROP:** A bamboo Kendo practice sword (Shinai).
 
-*A busy afternoon in the village square. A few people walk around, engaged in their tasks. The sun casts a warm glow over the village.*
+***
 
-**NARRATOR (V.O.)**
-In a world filled with duty, there are moments when friendship becomes the greatest strength.
+**SCENE 1**
 
-*We see NARUTO (early 20s, blonde hair, wearing a headband) sitting on a bench, his face serious. He holds a small, crumpled piece of paper in his hand.*
+**INT. TRADITIONAL DOJO - LATER AFTERNOON**
 
----
+The animation style is gritty but fluid. Dust motes dance in shafts of golden sunlight cutting through the dark wooden hall.
 
-**Scene 2: EXT. VILLAGE SQUARE - DAY**
+Close up on a well-worn BAMBOO SHINAI (PROP). A hand grips the leather handle tightly. Knuckles white.
 
-*SASUKE (early 20s, dark hair, wearing a dark cloak) walks up, noticing Naruto on the bench. He pauses for a moment before sitting beside him.*
+KENJI (20s, sharp features, intense eyes beneath a Kendo helmet grill) stands motionless in a low stance.
 
-**SASUKE**
-(looking at Naruto)
-What’s bothering you?
+Across the polished floor, RYU (20s, taller, stoic expression visible through his helmet grill) mirrors the stance. He also holds a SHINAI (PROP).
 
-**NARUTO**
-(staring at the paper)
-It’s a letter from Sakura... She’s gone on a mission. I promised her I’d keep an eye on things here. But what if something happens to her?
+The air is heavy. Silence.
 
-*Sasuke looks at Naruto, considering his words.*
+Kenji's foot slides imperceptibly forward.
 
----
+**SCENE 2**
 
-**Scene 3: EXT. VILLAGE SQUARE - DAY**
+**INT. DOJO - CONTINUOUS**
 
-*Naruto suddenly jumps up, clenching the paper in his fist.*
+INSTANT EXPLOSION OF MOTION.
 
-**NARUTO**
-(sighing)
-I’ve been a ninja for years... but some promises feel harder to keep than others.
+Kenji launches forward, a kinetic blur of speed lines.
 
-*Sasuke stands up as well, his eyes focused on Naruto’s agitation.*
+Ryu parries. The two SHINAIS collide with a visual SHOCKWAVE effect—a burst of blue energy instead of sound.
 
-**SASUKE**
-You think Sakura doesn’t trust you?
+A flurry of strikes. The animation frames skip to emphasize raw speed.
 
-**NARUTO**
-(suddenly looking up)
-No! That’s not it... I trust her. But I... I don’t want to let her down.
+Close up on Kenji’s eyes, wide, pupils dilated.
 
----
+Ryu spins, his SHINAI a sweeping arc leaving a trail of light.
 
-**Scene 4: EXT. VILLAGE SQUARE - DAY**
+Kenji ducks under the strike, bringing his SHINAI up in a thrust.
 
-*Sasuke takes a deep breath and then speaks with a rare hint of sincerity.*
+Ryu deflects it barely. The friction between the two bamboo swords creates sparks.
 
-**SASUKE**
-You know, a promise isn’t just about keeping watch. It’s about showing up, no matter what. If she trusted you, she’s already certain you’ll be there when it matters.
+They lock swords, pressing with all their might. The bamboo bows under the pressure. Their faces are inches apart behind the protective grills, teeth gritted in extreme effort.
 
-*Naruto looks at Sasuke, his expression softening.*
+**SCENE 3**
 
-**NARUTO**
-(nods slowly)
-Yeah... I guess you’re right. I just need to keep going.
+**EXT. ABSTRACT VOID - CONTINUOUS (MENTAL SPACE)**
 
----
+The dojo walls dissolve away. The background is now a swirling void of brushstrokes and abstract cherry blossom petals moving at high speed.
 
-**Scene 5: EXT. VILLAGE SQUARE - DAY**
+Kenji and Ryu are alone in this infinite space, still locked in their duel. The colors are hyper-saturated.
 
-*Naruto walks back toward the bench, sitting down again. Sasuke stays standing, watching him for a moment before looking away.*
+They break the lock and engage again. The movements are impossibly fast now, almost teleporting between strikes.
 
-**NARUTO**
-(smiling)
-Thanks, Sasuke. You know, you’re not so bad for someone who doesn’t talk much.
+Every clash of the SHINAIS sends ripples through the painted void background.
 
-*Sasuke’s eyes soften, just a little, as he turns to leave.*
+Ryu leaps high into the "air," silhouetted against a massive, stylized sun. He brings his SHINAI down in a crushing overhead strike.
 
-**SASUKE**
-(smiling faintly)
-Don’t let your guard down too much. She’ll probably be back before you know it.
+Kenji raises his SHINAI in a desperate horizontal block.
 
----
+The impact is blinding. The screen flashes white.
 
-**Scene 6: EXT. VILLAGE OUTSKIRTS - DAY**
+**SCENE 4**
 
-*Sakura, wearing her ninja gear, appears on the horizon, walking toward the village. The familiar pink hair blowing in the wind.*
+**INT. DOJO - LATER AFTERNOON**
 
----
+Snap back to reality. The golden hour light is darker now.
 
-**Scene 7: EXT. VILLAGE SQUARE - DAY**
+Ryu stands tall, breathing heavily, his SHINAI held loosely at his side.
 
-*Naruto stands up quickly, his face lighting up with a grin. He watches as Sakura walks into the village.*
+Kenji is on one knee on the floor, propping himself up with his SHINAI. He is winded but uninjured.
 
-**NARUTO**
-(quietly to himself)
-I kept my promise.
+Ryu extends a hand.
 
----
+Kenji looks up, takes a breath, and grips Ryu's hand.
 
-**Scene 8: EXT. VILLAGE SQUARE - DAY**
+Ryu pulls Kenji to his feet.
 
-*As Sakura approaches, Naruto waves to her, his expression full of determination and warmth.*
+They both bow deeply to each other, a sign of absolute respect.
 
-**NARUTO**
-Hey, Sakura! Welcome back!
+They turn and walk away side-by-side towards the exit, their SHINAIS resting on their shoulders against the setting sun.
 
-*Sakura smiles warmly at him, relieved to see that everything is well. They exchange a brief, knowing look as the sun sets behind them.*
-
----
-
-**THE END**
-
+**FADE OUT.**

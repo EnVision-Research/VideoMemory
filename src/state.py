@@ -47,6 +47,9 @@ class VideoMemoryContext:
 class StoryboardShot(BaseModel):
     shot: int 
     act: int 
+    narrative_function: str
+    shot_pattern: str
+    visual_chain: str
     plot: str 
     scene: str 
     characters: List[str] 

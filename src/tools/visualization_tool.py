@@ -109,7 +109,7 @@ def video_generation(request: str, runtime: ToolRuntime) -> Command:
     video_agent = create_agent(
         name="video_agent",
         model=ctx.video_model,
-        tools=[sora2_tool],
+        tools=[mock_video_tool],
         system_prompt=ctx.video_prompt,
         response_format=Video,
         context_schema=VideoMemoryContext,
