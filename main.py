@@ -4,7 +4,7 @@ load_dotenv()
 from src.agents import video_memory_graph
 from src.state import VideoMemoryContext
 
-thread_id = "1"
+thread_id = "2"
 with open(f"scripts/{thread_id}.txt", "r") as f:
     script = f.read()
 

@@ -74,7 +74,7 @@ def keyframe_generation(request: str, runtime: ToolRuntime) -> Command:
 
     return Command(
         update={
-            "messages": [ToolMessage(content="The new keyframe is saved at output/{thread_id}/keyframe.json", tool_call_id=runtime.tool_call_id)],
+            "messages": [ToolMessage(content="Phase 1 is completely finished and all keyframes are ready. The new keyframe is saved at output/{thread_id}/keyframe.json", tool_call_id=runtime.tool_call_id)],
             "keyframe": keyframe_json,
         }
     )
@@ -101,15 +101,15 @@ def video_generation(request: str, runtime: ToolRuntime) -> Command:
     human_message = f"""
         The request from visualization agent is:\n{request}\n
         The base_path is: output/{thread_id}
-        Storyboard is:\n{storyboard_json}\n
-        Keyframe is:\n{keyframe_json}\n
+        Storyboard data is:\n{storyboard_json}\n
+        Keyframe data is:\n{keyframe_json}\n
     """
 
     # Create Video sub-agent
     video_agent = create_agent(
         name="video_agent",
         model=ctx.video_model,
-        tools=[mock_video_tool],
+        tools=[sora2_tool],
         system_prompt=ctx.video_prompt,
         response_format=Video,
         context_schema=VideoMemoryContext,
@@ -135,7 +135,7 @@ def video_generation(request: str, runtime: ToolRuntime) -> Command:
 
     return Command(
         update={
-            "messages": [ToolMessage(content="The new video clips are saved at output/{thread_id}/video_clips.json", tool_call_id=runtime.tool_call_id)],
+            "messages": [ToolMessage(content="Phase 2 is completely finished and all video clips are ready. The new video clips are saved at output/{thread_id}/video_clips.json", tool_call_id=runtime.tool_call_id)],
             "video_clips": video_clips,
         }
     )

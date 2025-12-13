@@ -4,7 +4,7 @@ load_dotenv()
 from src.agents import visualization_graph
 from src.state import VideoMemoryContext
 
-thread_id = "1"
+thread_id = "2"
 
 # Load storyboard and memory_bank from previous pipeline stages
 with open(f"output/{thread_id}/storyboard.json", "r") as f:
