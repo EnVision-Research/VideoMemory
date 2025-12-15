@@ -4,7 +4,7 @@ load_dotenv()
 from src.agents import memory_graph
 from src.state import VideoMemoryContext
 
-thread_id = "2"
+thread_id = "11"
 with open(f"output/{thread_id}/storyboard.json", "r") as f:
     storyboard = f.read()
 

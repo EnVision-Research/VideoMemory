@@ -4,7 +4,7 @@ load_dotenv()
 from src.agents import storyboard_graph
 from src.state import VideoMemoryContext
 
-thread_id = "Animation2D_fight"
+thread_id = "11"
 with open(f"scripts/{thread_id}.txt", "r") as f:
     script = f.read()
 

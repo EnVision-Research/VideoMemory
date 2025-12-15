@@ -148,7 +148,7 @@ Iterate through every shot in the Storyboard:
 - **Trigger**: New Character OR Age Change.
 - **File Path**: `{base_path}/memory_bank/chars/{Name}_{Age}.png`
 - **Prompt Template**:
-  `Cinematic full-body portrait of {Race_Gender}, {Age}, {Visual_Description}. Neutral white background. Soft studio lighting. {Global_Visual_Style}.`
+  `Cinematic full-body portrait of {Race_Gender}, {Age}, {Visual_Description}. Neutral white background. Soft studio lighting. {global_visual_style}.`
 - **Constraints**: Remove scene/action descriptions. Focus on physical appearance only.
 - **Continuity Rule**: If creating an updated version due to age change, the prompt must include the reference instruction: "Maintain facial identity and core features from the reference image, only aging the character to {Age}." and you must add the previous version's image path to this Asset's reference list.
 
@@ -157,7 +157,7 @@ Iterate through every shot in the Storyboard:
 - **Trigger**: First appearance ONLY.
 - **File Path**: `{base_path}/memory_bank/props/{Prop_Name}.png`
 - **Prompt Template**:
-  `Product photography of {Prop_Name}, {Visual_Description}. Neutral white background. Soft studio lighting. {Global_Visual_Style}.`
+  `Product photography of {Prop_Name}, {Visual_Description}. Neutral white background. Soft studio lighting.{global_visual_style}.`
 - **Constraints**: Props never change.
 
 ### 3. Scene Assets
@@ -165,7 +165,7 @@ Iterate through every shot in the Storyboard:
 - **Trigger**: New Location OR New Time of Day.
 - **File Path**: `{base_path}/memory_bank/scenes/{Location}_{Time}.png`
 - **Prompt Template**:
-  `Empty scene plate of {Location_Name}. {Time_of_Day} lighting. {Atmosphere}. No people. {Global_Visual_Style}.`
+  `Empty scene plate of {Location_Name}. {Time_of_Day} lighting. {Atmosphere}. No people. {global_visual_style}.`
 - **Continuity Rule**: If generating a new time of day for an existing location, the prompt must start with: "Keep the physical layout, furniture, and geometry exactly identical to the reference image. Only change the lighting and sky to {Time_of_Day}."
 - **Important**: This type of asset must be generated in Batch 2, after the "Base Scene" is complete.
 
@@ -318,6 +318,11 @@ Iterate through the storyboard and match with the corresponding keyframe data:
 1. **Data Matching**: Associate shot_number to extract video_shot_design and keyframe_path.
 2. **Construct Prompts**:
    - **Visual Anchor**: Extract the core subject description from the keyframe data (remove @ImageX syntax).
+   - **Identity Grounding (Name Replacement)**:
+     - Infer the on-screen subject label from the keyframe generation_prompt (e.g., "the Asian male", "the middle-aged woman", "the masked courier").
+     - Replace named entities in video_shot_design with the inferred subject label:
+       - Example: "KAI" -> "The Asian male"
+       - Keep grammar correct (e.g., "KAI’s" -> "the Asian male’s")
    - **Dynamic Integration**: Convert timestamps, actions, and camera movements from video_shot_design into segmented descriptions.
 3. **Batch Generation**: Aggregate parameters for all shots and call video_generation_tool in parallel.
 
@@ -340,7 +345,7 @@ The generation_prompt passed to the tool must focus on camera language and use a
 
 ### Example Case
 
-`"0-2s: Side view medium shot, An Asian male in a white shirt raises the Gun; 2-6s: Cut to POV close-up of the shaking hand and muzzle; 6-8s: Cut to low-angle shot of the smoke rising from the barrel. {Global_Visual_Style}"`
+`"0-2s: Side view medium shot, The Asian male raises the Gun; 2-6s: Cut to POV close-up of the shaking hand and muzzle; 6-8s: Cut to low-angle shot of the smoke rising from the barrel.{global_visual_style}."`
 
 ## Output
 

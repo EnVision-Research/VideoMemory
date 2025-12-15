@@ -115,7 +115,7 @@ def video_generation(request: str, runtime: ToolRuntime) -> Command:
         context_schema=VideoMemoryContext,
         middleware=[
             ToolRetryMiddleware(
-                max_retries=5,
+                max_retries=3,
                 backoff_factor=2.0,
                 initial_delay=1.0,
             ),
