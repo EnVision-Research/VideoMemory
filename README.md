@@ -17,11 +17,11 @@
 [Yihua Du](https://hit-perfect.github.io)<sup>1*</sup>,
 [Xinli Xu](https://scholar.google.com.sg/citations?user=lrgPuBUAAAAJ&hl=zh-CN)<sup>1*†</sup>,
 [Luozhou Wang](https://wileewang.github.io)<sup>1</sup>,
-Zijie Zhuang<sup>1</sup>,
-Yehang Zhang<sup>1</sup>,
-Shuaibo Li<sup>1</sup>,
-Xiaojun Hu<sup>3</sup>,
-Bolan Su<sup>3</sup>,
+[Zijie Zhuang](https://hit-perfect.github.io/VideoMemory/)<sup>1</sup>,
+[Yehang Zhang](https://hit-perfect.github.io/VideoMemory/)<sup>1</sup>,
+[Shuaibo Li](https://hit-perfect.github.io/VideoMemory/)<sup>1</sup>,
+[Xiaojun Hu](https://hit-perfect.github.io/VideoMemory/)<sup>3</sup>,
+[Bolan Su](https://hit-perfect.github.io/VideoMemory/)<sup>3</sup>,
 [Ying-Cong Chen](https://www.yingcong.me)<sup>1,2‡</sup>
 
 <sup>1</sup>HKUST(GZ) &nbsp;&nbsp; <sup>2</sup>HKUST &nbsp;&nbsp; <sup>3</sup>ByteDance
