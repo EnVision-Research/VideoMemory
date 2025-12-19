@@ -5,8 +5,28 @@
 
 # VideoMemory: Toward Consistent Video Generation via Memory Integration
 
+<div style="display: grid; place-items: center;">
+<img src="asset/VideoMemorylogo.png" width="50%" alt="Logo">
+</div>
+
 <a href="https://hit-perfect.github.io/VideoMemory/"><img src="https://img.shields.io/badge/Project_Page-Online-EA3A97"></a>
 <a href="#"><img src="https://img.shields.io/badge/ArXiv-2512.*****-brightgreen"></a> 
+
+
+[Jinsong Zhou](https://jinsong-zhou.github.io)<sup>1,3*</sup>,
+[Yihua Du](https://hit-perfect.github.io)<sup>1*</sup>,
+[Xinli Xu](https://scholar.google.com.sg/citations?user=lrgPuBUAAAAJ&hl=zh-CN)<sup>1*†</sup>,
+[Luozhou Wang](https://wileewang.github.io)<sup>1</sup>,
+Zijie Zhuang<sup>1</sup>,
+Yehang Zhang<sup>1</sup>,
+Shuaibo Li<sup>1</sup>,
+Xiaojun Hu<sup>3</sup>,
+Bolan Su<sup>3</sup>,
+[Ying-Cong Chen](https://www.yingcong.me)<sup>1,2‡</sup>
+
+<sup>1</sup>HKUST(GZ) &nbsp;&nbsp; <sup>2</sup>HKUST &nbsp;&nbsp; <sup>3</sup>ByteDance
+
+<sup>*</sup>Equal Contribution &nbsp;&nbsp; <sup>†</sup>Project Lead &nbsp;&nbsp; <sup>‡</sup>Corresponding Author
 
 </div>
 
@@ -77,11 +97,11 @@ python main.py
 If you find this project helpful in your research or applications, please cite it as follows:
 
 ```BibTeX
-@software{videomemory2025,
+@article{zhou2024videomemory,
   title={VideoMemory: Toward Consistent Video Generation via Memory Integration},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/your-username/VideoMemory}
+  author={Zhou, Jinsong and Du, Yihua and Xu, Xinli and Wang, Luozhou and Zhuang, Zijie and Zhang, Yehang and Li, Shuaibo and Hu, Xiaojun and Su, Bolan and Chen, Ying-Cong},
+  journal={arXiv preprint arXiv:2512.*****},
+  year={2024}
 }
 ```
 
