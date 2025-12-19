@@ -1,24 +1,33 @@
-# VideoMemory
 
-> **VideoMemory**: VideoMemory: Toward Consistent Video Generation via Memory Integration
+
+<div align="center">
+
+
+# VideoMemory: Toward Consistent Video Generation via Memory Integration
+
+<a href="https://hit-perfect.github.io/VideoMemory/"><img src="https://img.shields.io/badge/Project_Page-Online-EA3A97"></a>
+<a href="#"><img src="https://img.shields.io/badge/ArXiv-2512.*****-brightgreen"></a> 
+
+</div>
+
+
+Official implementation of VideoMemory: Toward Consistent Video Generation via Memory Integration.
+
+<div style="display: grid; place-items: center;">
+<img src="asset/Pipeline.png" width="100%" alt="Framework">
+</div>
 
 VideoMemory is a multi-agent video generation framework built on LangGraph that automatically transforms screenplay text into coherent video content. By constructing a Visual Memory Bank to maintain consistency of characters, scenes, and props, it enables a high-quality automated video production pipeline.
 
-## 🎯 Key Features
+# 🚩 Features
+- [✅] Multi-Agent Collaboration: Three-stage pipeline architecture (Storyboard → Memory → Visualization)
+- [✅] Visual Memory Bank: Automatically manages character, scene, and prop assets to ensure cross-shot visual consistency
+- [✅] Structured Output: Strict output control based on Pydantic Schema
+- [✅] Flexible Generation Backend: Supports Replicate (Nano-Banana) for image generation and Sora-2 for video generation
 
-- **Multi-Agent Collaboration**: Three-stage pipeline architecture: Storyboard → Memory → Visualization
-- **Visual Memory Bank**: Automatically manages character, scene, and prop assets to ensure cross-shot visual consistency
-- **Structured Output**: Strict output control based on Pydantic Schema
-- **Flexible Generation Backend**: Supports Replicate (Nano-Banana) for image generation and Sora-2 for video generation
+# ⚙️ Dependencies and Installation
 
-## 📦 Installation
-
-### Requirements
-
-- Python >= 3.11
-- [uv](https://github.com/astral-sh/uv) (recommended package manager)
-
-### Setup
+We recommend using `Python>=3.11` and [uv](https://github.com/astral-sh/uv) package manager.
 
 ```bash
 # Clone the repository
@@ -28,9 +37,9 @@ cd VideoMemory
 # Create virtual environment and install dependencies using uv
 uv sync
 source .venv/bin/activate
+```
 
-
-### Environment Variables
+## Environment Variables
 
 ```bash
 cp env.example .env
@@ -50,20 +59,20 @@ LANGSMITH_TRACING=true
 LANGSMITH_PROJECT=VideoMemory
 ```
 
-## 🚀 Quick Start
+# 💫 Run
 
-### 1. Prepare Scripts
+## Prepare Scripts
 
 Place screenplay files in the `scripts/` directory following standard screenplay format.
 
-### 2. Run the Pipeline
+## Run the Pipeline
 
 ```bash
 source .venv/bin/activate
 python main.py
 ```
 
-### 3. View Outputs
+## View Outputs
 
 Generated results are saved in `output/{thread_id}/`:
 
@@ -81,7 +90,7 @@ output/1/
 └── videos/              # Generated video clips
 ```
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```
 VideoMemory/
@@ -98,9 +107,11 @@ VideoMemory/
 └── pyproject.toml
 ```
 
-## 📝 Citation
+# 📚 Citation
 
-```bibtex
+If you find this project helpful in your research or applications, please cite it as follows:
+
+```BibTeX
 @software{videomemory2025,
   title={VideoMemory: Toward Consistent Video Generation via Memory Integration},
   author={Your Name},
@@ -109,7 +120,7 @@ VideoMemory/
 }
 ```
 
-## 📄 License
+# 📄 License
 
 This project is licensed under the **CC BY-NC-SA 4.0** (Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License).
 
