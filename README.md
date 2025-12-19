@@ -72,41 +72,6 @@ source .venv/bin/activate
 python main.py
 ```
 
-## View Outputs
-
-Generated results are saved in `output/{thread_id}/`:
-
-```
-output/1/
-├── storyboard.json      # Shot-by-shot storyboard
-├── memory_bank.json     # Visual asset index
-├── memory_bank/
-│   ├── chars/           # Character images
-│   ├── props/           # Prop images
-│   └── scenes/          # Scene images
-├── keyframe.json        # Keyframe metadata
-├── keyframes/           # Keyframe images
-├── video_clips.json     # Video clip metadata
-└── videos/              # Generated video clips
-```
-
-# 📁 Project Structure
-
-```
-VideoMemory/
-├── main.py                 # Entry point
-├── src/
-│   ├── agents.py           # LangGraph definitions
-│   ├── nodes.py            # Agent node implementations
-│   ├── state.py            # State and Schema definitions
-│   ├── prompts.py          # System prompts
-│   └── tools/              # Generation tools
-├── scripts/                # Input screenplays
-├── output/                 # Generated outputs
-├── test/                   # Test files
-└── pyproject.toml
-```
-
 # 📚 Citation
 
 If you find this project helpful in your research or applications, please cite it as follows:
