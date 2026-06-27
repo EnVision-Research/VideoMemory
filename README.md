@@ -10,7 +10,7 @@
 </div>
 
 <a href="https://hit-perfect.github.io/VideoMemory/"><img src="https://img.shields.io/badge/Project_Page-Online-EA3A97"></a>
-<a href="#"><img src="https://img.shields.io/badge/ArXiv-2512.*****-brightgreen"></a> 
+<a href="https://arxiv.org/abs/2601.03655"><img src="https://img.shields.io/badge/ArXiv-2601.03655-brightgreen"></a> 
 
 
 [Jinsong Zhou](https://jinsong-zhou.github.io)<sup>1,3*</sup>,
@@ -97,11 +97,11 @@ python main.py
 If you find this project helpful in your research or applications, please cite it as follows:
 
 ```BibTeX
-@article{zhou2024videomemory,
+@article{zhou2026videomemory,
   title={VideoMemory: Toward Consistent Video Generation via Memory Integration},
-  author={Zhou, Jinsong and Du, Yihua and Xu, Xinli and Wang, Luozhou and Zhuang, Zijie and Zhang, Yehang and Li, Shuaibo and Hu, Xiaojun and Su, Bolan and Chen, Ying-Cong},
-  journal={arXiv preprint arXiv:2512.*****},
-  year={2024}
+  author={Zhou, Jinsong and Du, Yihua and Xu, Xinli and Wang, Luozhou and Zhuang, Zijie and Zhang, Yehang and Li, Shuaibo and Hu, Xiaojun and Su, Bolan and Chen, Ying-cong},
+  journal={arXiv preprint arXiv:2601.03655},
+  year={2026}
 }
 ```
 
